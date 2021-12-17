@@ -9,7 +9,7 @@ auth = tweepy.OAuthHandler(cm.API_key, cm.API_secret_key)
 auth.set_access_token(cm.access_token, cm.access_token_secret)
 api = tweepy.API(auth)
 
-publish = True
+publish = False
 
 # authenticate bot
 try:
@@ -21,6 +21,7 @@ except:
 
 # get usd/try exchange rate
 usd_try = get_usd_try()
+usd_try = 14.01
 
 # get year from exchange rate
 year    = round(usd_try*100)
@@ -44,7 +45,7 @@ if log_exists(year):
 thread  = get_thread(year, usd_try)
 
 # publish the thread
-if publish:
+if publish and thread:
     # Create thread
     tweet_instances = []
 
@@ -63,5 +64,8 @@ if publish:
 
     log_create(year, tweet_instances[0].id)
 
-for tweet in thread:
-    print(f"[{len(tweet)} chars]\n", tweet, '\n')
+if thread:
+    for tweet in thread:
+        print(f"[{len(tweet)} chars]\n", tweet, '\n')
+else:
+    print(f'No thread found, thread={thread}')

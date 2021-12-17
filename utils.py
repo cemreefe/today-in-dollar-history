@@ -17,29 +17,6 @@ def get_usd_try():
   print('## USD/TRY Exchange rate:', usd_try, '\n')
   return usd_try
 
-def get_h2_info(year, events=True, births=True, deaths=True):
-  # get year data from wikipedia
-  response = requests.get(f'https://tr.wikipedia.org/wiki/{year}')
-  soup = BeautifulSoup(response.text, 'html.parser')
-
-  h2s = soup.find_all('h2')
-
-  if h2s[0].get('id') == 'mw-toc-heading':
-    h2s = h2s[1:]
-
-  events_info, births_info, deaths_info = h2s[:3]
-
-  tweet_details = []
-
-  if events:
-    tweet_details.append(get_details(events_info))
-  if births:
-    tweet_details.append(get_details(births_info))
-  if deaths:
-    tweet_details.append(get_details(deaths_info))
-
-  return tweet_details
-
 def get_details(h2object):
   title = h2object.find_all('span')[1].get('id') or h2object.find_all('span')[0].get('id')
 
@@ -49,6 +26,37 @@ def get_details(h2object):
 
   return {'title':title, 'items':items}
 
+
+def get_h2_info(year):
+  # get year data from wikipedia
+  response = requests.get(f'https://tr.wikipedia.org/wiki/{year}')
+  soup = BeautifulSoup(response.text, 'html.parser')
+
+  h2s = soup.find_all('h2')
+
+  for h2 in h2s:
+    print(h2, '\n')
+
+  if h2s[0].get('id') == 'mw-toc-heading':
+    h2s = h2s[1:]
+
+  event_categories = h2s[:3]
+
+  tweet_details = []
+
+  subcat_details = [get_details(events_info) for events_info in event_categories ]
+  subcat_exists  = [
+    subcat['items'] and (i == (len(subcat_details)-1) or (subcat['items'] != subcat_details[i+1]['items'])) 
+    for i, subcat in enumerate(subcat_details)
+  ]
+
+  for exists, details in zip(subcat_exists, subcat_details):
+    if exists:
+      tweet_details = [details]
+      break
+
+  return tweet_details
+
 def get_tweets(tweet_data, year, usd_try, log=False):
 
   # doesn't take into account the paginator 
@@ -56,8 +64,20 @@ def get_tweets(tweet_data, year, usd_try, log=False):
   max_allowed_tweet_length = 240 
 
   nl = '\n'
-  #title = tweet_data['title'].upper()
-  title = f"{year} Yılında neler olmuştu?"
+  
+  title = tweet_data['title'].lower()
+  
+  if title == 'olaylar':
+    if year < 2022:
+      title = f"{year} Yılında neler olmuştu?"
+    else:
+      title = f"{year} Yılında neler olacak?"
+
+  elif title == 'doğumlar':
+    title = f"{year} Yılında kimler doğmuştu?"
+
+  elif title == 'ölümler':
+    title = f"{year} Yılında kimler ölmüştü?"
   
   max_body_length = max_allowed_tweet_length - len(title) - 3
 
@@ -107,7 +127,10 @@ def flatten(t):
 
 def get_thread(year, usd_try):
 
-    info    = get_h2_info(year, events=True, births=False, deaths=False)
+    info    = get_h2_info(year)
+
+    if not info:
+      return None
 
     tweets  = [ get_tweets(i, year, usd_try) for i in info ]
 
