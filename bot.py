@@ -9,7 +9,7 @@ auth = tweepy.OAuthHandler(cm.API_key, cm.API_secret_key)
 auth.set_access_token(cm.access_token, cm.access_token_secret)
 api = tweepy.API(auth)
 
-publish = False
+publish = True
 
 # authenticate bot
 try:
