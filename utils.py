@@ -34,9 +34,6 @@ def get_h2_info(year):
 
   h2s = soup.find_all('h2')
 
-  for h2 in h2s:
-    print(h2, '\n')
-
   if h2s[0].get('id') == 'mw-toc-heading':
     h2s = h2s[1:]
 
