@@ -21,7 +21,6 @@ except:
 
 # get usd/try exchange rate
 usd_try = get_usd_try()
-usd_try = 14.01
 
 # get year from exchange rate
 year    = round(usd_try*100)
