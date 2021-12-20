@@ -55,7 +55,7 @@ if publish and thread:
         # prevous tweets exist in thread
         else:
             # respond to latest tweet in thread
-            api.update_status(status=tweet_text, 
+            tweet_instance = api.update_status(status=tweet_text, 
                 in_reply_to_status_id=tweet_instances[-1].id, 
                 auto_populate_reply_metadata=True
             )
